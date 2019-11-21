@@ -7,7 +7,7 @@ output:
   ioslides_presentation:
     css: slides_style.css
     widescreen: yes
-    incremental: true
+    incremental: false
     smaller: false
   slidy_presentation: default
 ---
@@ -21,9 +21,8 @@ require(tidyverse)
 
 ```{r data_registration, include=FALSE, warning=FALSE}
 # import registrant data, registered, waiting list and cancelled
-FinalReg <- read_csv("data/FinalRegistration20191015.csv", 
-    skip = 7)
-FinalWaiting <- read_csv("data/FinalWaitingList20191015.csv",     skip = 7)
+FinalReg <- read_csv("data/FinalRegistration20191015.csv", skip = 7)
+FinalWaiting <- read_csv("data/FinalWaitingList20191015.csv", skip = 7)
 # The cancelled people list from the system doesn't contain as much details as the other two lists. Data imported here were compiled from exported registrants and waiting list on various days before the registration closed. 
 FinalCancel <- read_csv("data/RegistrantsFinalCanceledInfo.csv", skip = 8)
 
@@ -66,40 +65,104 @@ ChannelOther <- FinalAllRegistrants %>%
   filter(ChannelLearned == "Other") %>% 
   select(ChannelLearnedOther)
 
-#plot out the registration
-ggplot(data = Reg_Dept, aes(x = RegStatus, y = Count, fill = Dept)) +
-  geom_bar(stat = "identity")
+ChannelLearned_Dept <- FinalAllRegistrants %>% 
+  group_by(Dept, ChannelLearned) %>% 
+  summarise(Count = n())
 
+ChannelLearned_RegStatus <- FinalAllRegistrants %>% 
+  group_by(ChannelLearned, RegStatus) %>% 
+  summarise(Count = n())
+
+#plot out the registration
+#ggplot(data = Reg_Dept, aes(x = RegStatus, y = Count, fill = Dept)) +
+  #geom_bar(stat = "identity")
+
+reg_dept_plot <- ggplot(data = Reg_Dept, aes(x = reorder(Dept, -Dept_Total), y = Count, fill = Status)) +
+  geom_bar(stat = "identity") +
+  scale_fill_brewer(palette = "Dark2") +
+  theme_minimal() +
+  coord_flip() +
+  labs(title = "All Registrants of SWC @ MIT Oct 9-10,2019 \n (Total: 102)", y = "Count", x = "") 
+
+```
+
+
+
+## SWC @ MIT {#workshop}
+
+![](images/SWC_MIT.png)
+
+- `r nrow(FinalReg)` Registered
+- `r nrow(FinalWaiting)` Waiting List
+- `r nrow(FinalCancel)` Cancelled
+
+Among the 102 people, 19 people attended full two-day workshop during the long weekend in October
+
+## Who are interested? 
+
+```{r fig.width = 10.5, fig.align = "center"}
 ggplot(data = Reg_Dept, aes(x = reorder(Dept, -Dept_Total), y = Count, fill = Status)) +
   geom_bar(stat = "identity") +
   scale_fill_brewer(palette = "Dark2") +
-  coord_flip()
+  theme_minimal() +
+  coord_flip() +
+  labs(title = "All Registrants of SWC @ MIT Oct 9-10,2019 \n (Total: 102)", y = "Count", x = "") 
+```
+
+## How did people learn about this workshop?
+```{r fig.width = 10.5, fig.align = "center"}
+ggplot(data = ChannelLearned_RegStatus, aes(x = RegStatus, y = Count)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  facet_wrap(~reorder(ChannelLearned, -Count)) +
+  theme_light() +
+  labs(title = "", y ="Count", x ="") +
+  theme(
+      strip.text.x = element_text(
+        size = 16, color = "red", face = "bold.italic"
+        ),
+      axis.text.x = element_text(
+        size = 12
+      )
+      )
+
+```
+
+```{r data_feedback, include=FALSE, warning=FALSE}
+#import feedback data
+feedback <- read.csv("data/InSessionFeedback.csv", stringsAsFactors = FALSE)
+
 
 ```
 
 
+## Feedback {#feedback}
 
-## R Markdown
 
-This is an R Markdown presentation. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+![](images/feedback.jpg)
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document.
 
-## Slide with Bullets
 
-- Bullet 1
-- Bullet 2
-- Bullet 3
+## Feedback - Positive
 
-## Slide with R Output
-
-```{r cars, echo = TRUE}
-summary(cars)
+```{r feedbackP, echo = TRUE}
+feedback$Positive
 ```
 
-## Slide with Plot
+## Feedback - To improve
 
-```{r pressure}
-plot(pressure)
+```{r feedbackT, echo = TRUE}
+feedback$To.improve[1:8]
+
 ```
+
+## Implications 
+- Tool- and Skill-based workshops are popular 
+
+- Use it to teach students 
+  - basic programming skills
+  - computationally reproducible research workflow
+  - open data, open science and open research
+  - good data practices
+
+
 
