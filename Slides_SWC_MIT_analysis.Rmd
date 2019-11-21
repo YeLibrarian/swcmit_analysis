@@ -1,0 +1,105 @@
+---
+title: "Software Carpentry Workshop @ MIT, October 9 - 10, 2019"
+subtitle: "A brief report to LIRS"
+author: "Ye Li and Ece Turner"
+date: "11/21/2019"
+output:
+  ioslides_presentation:
+    css: slides_style.css
+    widescreen: yes
+    incremental: true
+    smaller: false
+  slidy_presentation: default
+---
+
+
+
+```{r setup, include=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+require(tidyverse)
+```
+
+```{r data_registration, include=FALSE, warning=FALSE}
+# import registrant data, registered, waiting list and cancelled
+FinalReg <- read_csv("data/FinalRegistration20191015.csv", 
+    skip = 7)
+FinalWaiting <- read_csv("data/FinalWaitingList20191015.csv",     skip = 7)
+# The cancelled people list from the system doesn't contain as much details as the other two lists. Data imported here were compiled from exported registrants and waiting list on various days before the registration closed. 
+FinalCancel <- read_csv("data/RegistrantsFinalCanceledInfo.csv", skip = 8)
+
+#Select needed columns of data
+#add a column to note registration type
+FinalReg_toPlot <- FinalReg[ , c(1,2,3,6,7,8,9,10)]
+RegStatus <- rep("Registered", nrow(FinalReg_toPlot))
+FinalReg_toPlot <- cbind(FinalReg_toPlot,RegStatus) 
+
+FinalWaiting_toPlot <- FinalWaiting[ , c(1:3,5:9)]
+RegStatus <- rep("Waiting", nrow(FinalWaiting_toPlot))
+FinalWaiting_toPlot <- cbind(FinalWaiting_toPlot, RegStatus)
+
+FinalCancel_toPlot <- FinalCancel[ , c(1:3, 6:10)]
+RegStatus <- rep("Cancelled", nrow(FinalCancel_toPlot))
+FinalCancel_toPlot <- cbind(FinalCancel_toPlot, RegStatus)
+
+#put all registrants into one dataframe
+FinalAllRegistrants <- rbind(FinalReg_toPlot, FinalWaiting_toPlot, FinalCancel_toPlot)
+
+#rename columns for easier handling
+colnames(FinalAllRegistrants) <- c("FirstName", "LastName", "Email", "Status", "Dept", "Lab", "ChannelLearned", "ChannelLearnedOther", "RegStatus")
+
+#summarize registrants according to their dept
+Reg_Dept <- FinalAllRegistrants %>%
+  group_by(RegStatus,Dept,Status) %>% 
+  summarise(Count = n()) %>% 
+  group_by(Dept) %>% 
+  mutate(Dept_Total = sum(Count)) 
+
+Other_Dept <- FinalAllRegistrants %>% 
+  filter(Dept == "Other") %>%
+  select(Lab)
+
+ChannelLearned <- FinalAllRegistrants %>% 
+  group_by(ChannelLearned) %>% 
+  summarise(Count = n())
+
+ChannelOther <- FinalAllRegistrants %>% 
+  filter(ChannelLearned == "Other") %>% 
+  select(ChannelLearnedOther)
+
+#plot out the registration
+ggplot(data = Reg_Dept, aes(x = RegStatus, y = Count, fill = Dept)) +
+  geom_bar(stat = "identity")
+
+ggplot(data = Reg_Dept, aes(x = reorder(Dept, -Dept_Total), y = Count, fill = Status)) +
+  geom_bar(stat = "identity") +
+  scale_fill_brewer(palette = "Dark2") +
+  coord_flip()
+
+```
+
+
+
+## R Markdown
+
+This is an R Markdown presentation. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document.
+
+## Slide with Bullets
+
+- Bullet 1
+- Bullet 2
+- Bullet 3
+
+## Slide with R Output
+
+```{r cars, echo = TRUE}
+summary(cars)
+```
+
+## Slide with Plot
+
+```{r pressure}
+plot(pressure)
+```
+
