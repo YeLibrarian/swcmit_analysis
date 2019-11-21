@@ -1,7 +1,7 @@
 ---
 title: "Software Carpentry Workshop @ MIT, October 9 - 10, 2019"
 subtitle: "A brief report to LIRS"
-author: "Ye Li and Ece Turner"
+author: "Ye Li and Ece Turnater"
 date: "11/21/2019"
 output:
   ioslides_presentation:
